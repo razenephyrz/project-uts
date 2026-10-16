@@ -1,5 +1,6 @@
 #ifndef MODELS_H
 #define MODELS_H
+
 #include<bits/stdc++.h>
 
 constexpr std::size_t MAX_JADWAL = 100;
