@@ -2,36 +2,96 @@
 
 #include "data_manager.h"
 
+#include <charconv>
 #include <cctype>
 #include <iostream>
-#include <limits>
 #include <string>
 
 namespace {
 
-std::string readText(const std::string& prompt) {
+struct InputEnded {};
+
+std::string readLine(const std::string& prompt) {
     std::string value;
-    do {
-        std::cout << prompt;
-        std::getline(std::cin, value);
-        if (value.empty()) {
-            std::cout << "Input tidak boleh kosong.\n";
-        }
-    } while (value.empty() && std::cin);
+    std::cout << prompt;
+    if (!std::getline(std::cin, value)) {
+        throw InputEnded{};
+    }
     return value;
 }
 
-int readInteger(const std::string& prompt, int minimum, int maximum) {
-    int value = 0;
+bool isBlank(const std::string& value) {
+    for (char character : value) {
+        if (!std::isspace(static_cast<unsigned char>(character))) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string readText(const std::string& prompt) {
     while (true) {
-        std::cout << prompt;
-        if (std::cin >> value && value >= minimum && value <= maximum) {
-            std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        const std::string value = readLine(prompt);
+        if (!isBlank(value)) {
             return value;
         }
-        std::cout << "Masukkan angka antara " << minimum << " dan " << maximum << ".\n";
-        std::cin.clear();
-        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+        std::cout << "Input tidak boleh kosong atau hanya berisi spasi.\n";
+    }
+}
+
+int readInteger(const std::string& prompt, int minimum, int maximum) {
+    while (true) {
+        const std::string input = readLine(prompt);
+        const char* begin = input.data();
+        const char* end = begin + input.size();
+        while (begin != end && std::isspace(static_cast<unsigned char>(*begin))) {
+            ++begin;
+        }
+        while (begin != end && std::isspace(static_cast<unsigned char>(end[-1]))) {
+            --end;
+        }
+        if (begin == end) {
+            std::cout << "Input tidak boleh kosong; masukkan bilangan bulat.\n";
+            continue;
+        }
+
+        int value = 0;
+        const auto result = std::from_chars(begin, end, value);
+        if (result.ec == std::errc::result_out_of_range) {
+            std::cout << "Angka terlalu besar atau terlalu kecil untuk diproses.\n";
+            continue;
+        }
+        if (result.ec != std::errc{} || result.ptr != end) {
+            std::cout << "Format input salah; masukkan bilangan bulat tanpa karakter tambahan.\n";
+            continue;
+        }
+        if (value < minimum || value > maximum) {
+            std::cout << "Nilai harus antara " << minimum << " dan " << maximum << ".\n";
+            continue;
+        }
+        return value;
+    }
+}
+
+std::string readDate(const std::string& prompt) {
+    while (true) {
+        const std::string date = readText(prompt);
+        std::string reason;
+        if (isValidDate(date, reason)) {
+            return date;
+        }
+        std::cout << "Tanggal tidak valid: " << reason << ".\n";
+    }
+}
+
+std::string readPhone(const std::string& prompt) {
+    while (true) {
+        const std::string phone = readText(prompt);
+        std::string reason;
+        if (isValidPhone(phone, reason)) {
+            return phone;
+        }
+        std::cout << "Nomor HP tidak valid: " << reason << ".\n";
     }
 }
 
@@ -42,10 +102,10 @@ Jadwal readJadwalInput(int id) {
     jadwal.waktu.jam = static_cast<std::uint8_t>(readInteger("Jam (0-23)       : ", 0, 23));
     jadwal.waktu.menit = static_cast<std::uint8_t>(readInteger("Menit (0-59)     : ", 0, 59));
     jadwal.hari = readText("Hari              : ");
-    jadwal.tanggal = readText("Tanggal (DD-MM-YYYY): ");
+    jadwal.tanggal = readDate("Tanggal (DD-MM-YYYY): ");
     jadwal.namaDosen = readText("Dosen pengampu    : ");
     jadwal.penanggungJawab = readText("Penanggung jawab  : ");
-    jadwal.nomorHp = readText("Nomor HP           : ");
+    jadwal.nomorHp = readPhone("Nomor HP           : ");
     jadwal.tempat = readText("Tempat kelas       : ");
     return jadwal;
 }
@@ -71,56 +131,60 @@ void printMenu() {
 
 void runMenu(Jadwal data[], std::size_t& count) {
     bool running = true;
-    while (running) {
-        printMenu();
-        const int choice = readInteger("Pilih menu: ", 0, 8);
-        switch (choice) {
-        case 1: {
-            const int id = readInteger("ID jadwal        : ", 1, 999999);
-            const Jadwal jadwal = readJadwalInput(id);
-            std::string reason;
-            printResult(addJadwal(data, count, jadwal, reason),
-                        reason.empty() ? "jadwal ditambahkan" : reason);
-            break;
+    try {
+        while (running) {
+            printMenu();
+            const int choice = readInteger("Pilih menu: ", 0, 8);
+            switch (choice) {
+            case 1: {
+                const int id = readInteger("ID jadwal        : ", 1, 999999);
+                const Jadwal jadwal = readJadwalInput(id);
+                std::string reason;
+                const bool success = addJadwal(data, count, jadwal, reason);
+                printResult(success, success ? "jadwal ditambahkan" : reason);
+                break;
+            }
+            case 2:
+                printTable(data, count);
+                break;
+            case 3: {
+                const std::string keyword = readText("Kata kunci mata kuliah/dosen/hari/tempat: ");
+                searchJadwal(data, count, keyword);
+                break;
+            }
+            case 4:
+                sortByDateTime(data, count);
+                std::cout << "Data berhasil diurutkan.\n";
+                break;
+            case 5: {
+                const int id = readInteger("ID jadwal yang diubah: ", 1, 999999);
+                const Jadwal replacement = readJadwalInput(id);
+                std::string reason;
+                const bool success = updateJadwal(data, count, id, replacement, reason);
+                printResult(success, success ? "jadwal diperbarui" : reason);
+                break;
+            }
+            case 6: {
+                const int id = readInteger("ID jadwal yang dihapus: ", 1, 999999);
+                std::string reason;
+                const bool success = deleteJadwal(data, count, id, reason);
+                printResult(success, success ? "jadwal dihapus" : reason);
+                break;
+            }
+            case 7:
+                printStatistics(data, count);
+                break;
+            case 8:
+                printMemoryInfo();
+                break;
+            case 0:
+                running = false;
+                break;
+            default:
+                break;
+            }
         }
-        case 2:
-            printTable(data, count);
-            break;
-        case 3: {
-            const std::string keyword = readText("Kata kunci mata kuliah/dosen/hari/tempat: ");
-            searchJadwal(data, count, keyword);
-            break;
-        }
-        case 4:
-            sortByDateTime(data, count);
-            std::cout << "Data berhasil diurutkan.\n";
-            break;
-        case 5: {
-            const int id = readInteger("ID jadwal yang diubah: ", 1, 999999);
-            const Jadwal replacement = readJadwalInput(id);
-            std::string reason;
-            printResult(updateJadwal(data, count, id, replacement, reason),
-                        reason.empty() ? "jadwal diperbarui" : reason);
-            break;
-        }
-        case 6: {
-            const int id = readInteger("ID jadwal yang dihapus: ", 1, 999999);
-            std::string reason;
-            printResult(deleteJadwal(data, count, id, reason),
-                        reason.empty() ? "jadwal dihapus" : reason);
-            break;
-        }
-        case 7:
-            printStatistics(data, count);
-            break;
-        case 8:
-            printMemoryInfo();
-            break;
-        case 0:
-            running = false;
-            break;
-        default:
-            break;
-        }
+    } catch (const InputEnded&) {
+        std::cout << "\nInput dihentikan. Data akan disimpan sebelum program ditutup.\n";
     }
 }

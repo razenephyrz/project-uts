@@ -5,7 +5,8 @@ Kecerdasan Artifisial. Data disimpan permanen dalam `data/jadwal.txt`.
 
 ## Fitur
 
-- Menambah jadwal dengan validasi input.
+- Menambah jadwal dengan validasi input dan pesan yang menjelaskan kesalahan
+  format, rentang, tanggal, nomor HP, atau bentrok jadwal.
 - Menampilkan data dalam tabel.
 - Mencari berdasarkan mata kuliah, dosen, hari, atau tempat tanpa membedakan huruf kapital.
 - Mengurutkan data berdasarkan tanggal dan jam menggunakan selection sort.
@@ -72,4 +73,4 @@ Jadwal baru atau jadwal hasil perubahan ditolak jika memiliki hari, tanggal,
 dan waktu yang sama dengan jadwal lain. Perbandingan hari tidak membedakan
 huruf besar dan kecil.
 
-Perbaikan di pertambahan jadwal, jika ada input langsung validasi di data
+Perbaikan di pertambahan jadwal, jika ada input langsung validasi di dataj
