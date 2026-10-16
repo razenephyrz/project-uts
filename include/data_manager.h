@@ -5,12 +5,7 @@
 #include <cstddef>
 #include <string>
 
-bool isValidJadwal(const Jadwal& jadwal,
-                   const Jadwal data[],
-                   std::size_t count,
-                   std::string& reason,
-                   bool checkDuplicate = true,
-                   int ignoredIndex = -1);
+bool isValidJadwal(const Jadwal& jadwal, const Jadwal data[],std::size_t count, std::string& reason, bool checkDuplicate = true, int ignoredIndex = -1);
 bool isValidDate(const std::string& date, std::string& reason);
 bool isValidPhone(const std::string& phone, std::string& reason);
 int findJadwalById(const Jadwal data[], std::size_t count, int id);

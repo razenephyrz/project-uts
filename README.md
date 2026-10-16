@@ -71,3 +71,5 @@ program membaca file.
 Jadwal baru atau jadwal hasil perubahan ditolak jika memiliki hari, tanggal,
 dan waktu yang sama dengan jadwal lain. Perbandingan hari tidak membedakan
 huruf besar dan kecil.
+
+Perbaikan di pertambahan jadwal, jika ada input langsung validasi di data

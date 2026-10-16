@@ -15,4 +15,3 @@
 15|Robotika|15|30|Jumat|23-10-2026|Oscar Wijaya|Ovi Maharani|081234567904|Lab Robotika
 16|Kewirausahaan|8|0|Sabtu|24-10-2026|Putri Anggraini|Qori Hidayat|081234567905|Ruang E2-209
 17|Arsitektur Komputer|10|0|Sabtu|24-10-2026|Rudi Hartono|Rara Lestari|081234567906|Lab Komputer
-18|Machine Learning|7|0|rabu|21-10-2026|Harmon Prayogi|Reinzal|08255555555|Lab Komputasi 1
