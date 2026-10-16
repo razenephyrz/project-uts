@@ -113,7 +113,8 @@ bool isValidJadwal(const Jadwal& jadwal,
                   const Jadwal data[],
                   std::size_t count,
                   std::string& reason,
-                  bool checkDuplicate) {
+                  bool checkDuplicate,
+                  int ignoredIndex) {
     if (jadwal.id <= 0) {
         reason = "ID harus lebih besar dari 0";
         return false;
@@ -133,6 +134,19 @@ bool isValidJadwal(const Jadwal& jadwal,
     }
     if (!isValidDate(jadwal.tanggal, reason) || !isValidPhone(jadwal.nomorHp, reason)) {
         return false;
+    }
+    for (std::size_t index = 0; index < count; ++index) {
+        if (static_cast<int>(index) == ignoredIndex) {
+            continue;
+        }
+        const Jadwal& existing = data[index];
+        if (existing.waktu.jam == jadwal.waktu.jam &&
+            existing.waktu.menit == jadwal.waktu.menit &&
+            existing.tanggal == jadwal.tanggal &&
+            lowerText(existing.hari) == lowerText(jadwal.hari)) {
+            reason = "jadwal bentrok: hari, tanggal, dan waktu sudah digunakan";
+            return false;
+        }
     }
     return true;
 }
@@ -167,7 +181,7 @@ bool updateJadwal(Jadwal data[], std::size_t count, int id, const Jadwal& replac
     }
     Jadwal candidate = replacement;
     candidate.id = id;
-    if (!isValidJadwal(candidate, data, count, reason, false)) {
+    if (!isValidJadwal(candidate, data, count, reason, false, index)) {
         return false;
     }
     data[index] = candidate;

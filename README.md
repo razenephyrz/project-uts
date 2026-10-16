@@ -68,4 +68,6 @@ baris, termasuk tiga baris invalid berupa jumlah kolom salah, waktu di luar
 rentang, dan ID duplikat. Ketiga baris tersebut dilaporkan lalu dilewati saat
 program membaca file.
 
-Revisi Bagian Tambah Matkul Yang Bentrok
+Jadwal baru atau jadwal hasil perubahan ditolak jika memiliki hari, tanggal,
+dan waktu yang sama dengan jadwal lain. Perbandingan hari tidak membedakan
+huruf besar dan kecil.
