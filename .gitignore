@@ -1,0 +1,4 @@
+src/data_manager.o
+src/file_manager.o
+src/main.o
+src/menu.o
