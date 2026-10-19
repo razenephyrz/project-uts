@@ -72,9 +72,7 @@ int daysInMonth(int month, int year) {
 void printOneRow(const Jadwal& jadwal) {
     std::cout << std::left << std::setw(4) << jadwal.id
               << std::setw(24) << jadwal.namaMataKuliah.substr(0, 23)
-              << std::setw(6) << (std::to_string(jadwal.waktu.jam) + ":" +
-                                  (jadwal.waktu.menit < 10 ? "0" : "") +
-                                  std::to_string(jadwal.waktu.menit))
+              << std::setw(13) << (formatTime(jadwal.mulai) + "-" + formatTime(jadwal.selesai))
               << std::setw(12) << jadwal.hari
               << std::setw(12) << jadwal.tanggal
               << std::setw(22) << jadwal.namaDosen.substr(0, 21)
@@ -109,6 +107,77 @@ bool isValidPhone(const std::string& phone, std::string& reason) {
     return true;
 }
 
+bool normalizeDay(std::string& day, std::string& reason) {
+    static const char* const names[] = {"Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"};
+
+    std::size_t begin = 0;
+    std::size_t end = day.size();
+    while (begin < end && std::isspace(static_cast<unsigned char>(day[begin]))) {
+        ++begin;
+    }
+    while (end > begin && std::isspace(static_cast<unsigned char>(day[end - 1]))) {
+        --end;
+    }
+
+    const std::string key = lowerText(day.substr(begin, end - begin));
+    for (const char* name : names) {
+        if (key == lowerText(name)) {
+            day = name;
+            return true;
+        }
+    }
+    reason = "hari harus salah satu dari Senin, Selasa, Rabu, Kamis, Jumat, Sabtu, Minggu";
+    return false;
+}
+
+std::string formatTime(const Waktu& waktu) {
+    std::ostringstream out;
+    out << std::setfill('0') << std::setw(2) << static_cast<int>(waktu.jam) << ':'
+        << std::setw(2) << static_cast<int>(waktu.menit);
+    return out.str();
+}
+
+bool isDayMatchingDate(const std::string& hari, const std::string& tanggal, std::string& reason) {
+    int day = 0;
+    int month = 0;
+    int year = 0;
+    if (!parseDate(tanggal, day, month, year) || month < 1 || month > 12) {
+        reason = "tanggal harus berformat DD-MM-YYYY";
+        return false;
+    }
+
+    // Algoritma Sakamoto: 0 = Minggu, 1 = Senin, ..., 6 = Sabtu
+    static const int offsets[] = {0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4};
+    static const char* const names[] = {"Minggu", "Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu"};
+    const int adjustedYear = month < 3 ? year - 1 : year;
+    const int weekday = (adjustedYear + adjustedYear / 4 - adjustedYear / 100 +
+                         adjustedYear / 400 + offsets[month - 1] + day) % 7;
+
+    if (lowerText(hari) == lowerText(names[weekday])) {
+        return true;
+    }
+    reason = "tanggal " + tanggal + " jatuh pada hari " + names[weekday] + ", bukan " + hari;
+    return false;
+}
+
+int findScheduleConflict(const Jadwal data[], std::size_t count, const std::string& tanggal,
+                         const Waktu& mulai, const Waktu& selesai, int ignoredIndex) {
+    for (std::size_t index = 0; index < count; ++index) {
+        if (static_cast<int>(index) == ignoredIndex) {
+            continue;
+        }
+        const Jadwal& existing = data[index];
+        // Bentrok bila rentang waktu tumpang tindih pada tanggal yang sama.
+        // Selesai tepat saat jadwal lain mulai (berurutan) tidak dianggap bentrok.
+        if (existing.tanggal == tanggal &&
+            toMinutes(mulai) < toMinutes(existing.selesai) &&
+            toMinutes(existing.mulai) < toMinutes(selesai)) {
+            return static_cast<int>(index);
+        }
+    }
+    return -1;
+}
+
 bool isValidJadwal(const Jadwal& jadwal,
                   const Jadwal data[],
                   std::size_t count,
@@ -128,25 +197,28 @@ bool isValidJadwal(const Jadwal& jadwal,
         reason = "field teks tidak boleh kosong";
         return false;
     }
-    if (jadwal.waktu.jam > 23 || jadwal.waktu.menit > 59) {
+    std::string normalizedDay = jadwal.hari;
+    if (!normalizeDay(normalizedDay, reason)) {
+        return false;
+    }
+    if (jadwal.mulai.jam > 23 || jadwal.mulai.menit > 59 ||
+        jadwal.selesai.jam > 23 || jadwal.selesai.menit > 59) {
         reason = "jam harus 0-23 dan menit harus 0-59";
+        return false;
+    }
+    if (toMinutes(jadwal.selesai) <= toMinutes(jadwal.mulai)) {
+        reason = "waktu selesai harus setelah waktu mulai";
         return false;
     }
     if (!isValidDate(jadwal.tanggal, reason) || !isValidPhone(jadwal.nomorHp, reason)) {
         return false;
     }
-    for (std::size_t index = 0; index < count; ++index) {
-        if (static_cast<int>(index) == ignoredIndex) {
-            continue;
-        }
-        const Jadwal& existing = data[index];
-        if (existing.waktu.jam == jadwal.waktu.jam &&
-            existing.waktu.menit == jadwal.waktu.menit &&
-            existing.tanggal == jadwal.tanggal &&
-            lowerText(existing.hari) == lowerText(jadwal.hari)) {
-            reason = "jadwal bentrok: hari, tanggal, dan waktu sudah digunakan";
-            return false;
-        }
+    if (!isDayMatchingDate(jadwal.hari, jadwal.tanggal, reason)) {
+        return false;
+    }
+    if (findScheduleConflict(data, count, jadwal.tanggal, jadwal.mulai, jadwal.selesai, ignoredIndex) >= 0) {
+        reason = "jadwal bentrok: waktu tumpang tindih dengan jadwal lain pada tanggal yang sama";
+        return false;
     }
     return true;
 }
@@ -208,14 +280,14 @@ void printTable(const Jadwal data[], std::size_t count) {
     }
     std::cout << std::left << std::setw(4) << "ID"
               << std::setw(24) << "Mata Kuliah"
-              << std::setw(6) << "Jam"
+              << std::setw(13) << "Waktu"
               << std::setw(12) << "Hari"
               << std::setw(12) << "Tanggal"
               << std::setw(22) << "Dosen"
               << std::setw(20) << "Penanggung Jawab"
               << std::setw(16) << "No. HP"
               << "Tempat\n";
-    std::cout << std::string(140, '-') << '\n';
+    std::cout << std::string(150, '-') << '\n';
     for (std::size_t index = 0; index < count; ++index) {
         printOneRow(data[index]);
     }
@@ -251,8 +323,8 @@ void sortByDateTime(Jadwal data[], std::size_t count) {
         for (std::size_t current = index + 1; current < count; ++current) {
             const int currentDate = dateKey(data[current].tanggal);
             const int smallestDate = dateKey(data[smallest].tanggal);
-            const int currentMinutes = data[current].waktu.jam * 60 + data[current].waktu.menit;
-            const int smallestMinutes = data[smallest].waktu.jam * 60 + data[smallest].waktu.menit;
+            const int currentMinutes = toMinutes(data[current].mulai);
+            const int smallestMinutes = toMinutes(data[smallest].mulai);
             if (currentDate < smallestDate ||
                 (currentDate == smallestDate && currentMinutes < smallestMinutes)) {
                 smallest = current;
@@ -269,9 +341,9 @@ void printStatistics(const Jadwal data[], std::size_t count) {
     std::size_t afternoon = 0;
     std::size_t evening = 0;
     for (std::size_t index = 0; index < count; ++index) {
-        if (data[index].waktu.jam < 12) {
+        if (data[index].mulai.jam < 12) {
             ++morning;
-        } else if (data[index].waktu.jam < 18) {
+        } else if (data[index].mulai.jam < 18) {
             ++afternoon;
         } else {
             ++evening;

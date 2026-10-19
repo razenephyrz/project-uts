@@ -8,6 +8,11 @@
 bool isValidJadwal(const Jadwal& jadwal, const Jadwal data[],std::size_t count, std::string& reason, bool checkDuplicate = true, int ignoredIndex = -1);
 bool isValidDate(const std::string& date, std::string& reason);
 bool isValidPhone(const std::string& phone, std::string& reason);
+bool normalizeDay(std::string& day, std::string& reason);
+bool isDayMatchingDate(const std::string& hari, const std::string& tanggal, std::string& reason);
+std::string formatTime(const Waktu& waktu);
+int findScheduleConflict(const Jadwal data[], std::size_t count, const std::string& tanggal,
+                         const Waktu& mulai, const Waktu& selesai, int ignoredIndex = -1);
 int findJadwalById(const Jadwal data[], std::size_t count, int id);
 bool addJadwal(Jadwal data[], std::size_t& count, const Jadwal& jadwal, std::string& reason);
 bool updateJadwal(Jadwal data[], std::size_t count, int id, const Jadwal& replacement, std::string& reason);

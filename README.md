@@ -33,19 +33,24 @@ Kecerdasan Artifisial. Data disimpan permanen dalam `data/jadwal.txt`.
 |   `-- models.h
 ```
 
-Array data memiliki kapasitas tetap 100 record. Struct `Jadwal` memuat struct
-`Waktu`, sehingga data jam dan menit dikelompokkan sebagai satu anggota.
+Array data memiliki kapasitas tetap 100 record. Struct `Jadwal` memuat dua
+struct `Waktu`, yaitu `mulai` dan `selesai`, sehingga jam dan menit
+dikelompokkan sebagai satu anggota.
 
 ## Format Data
 
 Setiap baris menggunakan delimiter `|` dengan urutan:
 
 ```text
-id|nama_mata_kuliah|jam|menit|hari|tanggal|nama_dosen|penanggung_jawab|nomor_hp|tempat
+id|nama_mata_kuliah|jam_mulai|menit_mulai|jam_selesai|menit_selesai|hari|tanggal|nama_dosen|penanggung_jawab|nomor_hp|tempat
 ```
 
 Tanggal menggunakan format `DD-MM-YYYY`. Nomor HP disimpan sebagai teks agar
 angka nol di awal tetap dipertahankan.
+
+File format lama (10 kolom, tanpa jam selesai) tetap bisa dibaca. Jam selesai
+diisi otomatis dengan durasi bawaan 90 menit dan akan tersimpan dalam format
+baru (12 kolom) saat program ditutup.
 
 ## Kompilasi dan Eksekusi
 
@@ -64,13 +69,29 @@ Target `make clean` menghapus executable dan object file.
 ## Ketentuan UTS yang Diimplementasikan
 
 Program menggunakan dua struct, array of struct, percabangan, perulangan,
-fungsi, string, file I/O, header file, dan Makefile. Data awal memiliki 20
-baris, termasuk tiga baris invalid berupa jumlah kolom salah, waktu di luar
-rentang, dan ID duplikat. Ketiga baris tersebut dilaporkan lalu dilewati saat
-program membaca file.
+fungsi, string, file I/O, header file, dan Makefile. Data awal berisi 17 baris
+valid. Baris yang tidak valid (jumlah kolom salah, waktu di luar rentang, ID
+duplikat, hari tidak cocok dengan tanggal, atau jadwal bentrok) dilaporkan lalu
+dilewati saat program membaca file.
 
-Jadwal baru atau jadwal hasil perubahan ditolak jika memiliki hari, tanggal,
-dan waktu yang sama dengan jadwal lain. Perbandingan hari tidak membedakan
-huruf besar dan kecil.
+Jadwal baru atau jadwal hasil perubahan ditolak jika rentang waktunya
+tumpang tindih dengan jadwal lain pada tanggal yang sama. Jadwal yang berurutan
+(selesai tepat saat jadwal lain mulai) tidak dianggap bentrok.
 
-Perbaikan di pertambahan jadwal, jika ada input langsung validasi di dataj
+## Validasi Langsung Saat Input
+
+Saat menambah atau mengubah jadwal, setiap input langsung divalidasi terhadap
+data yang sudah ada, sehingga pengguna tidak perlu mengisi ulang semua kolom:
+
+- ID yang sudah dipakai langsung ditolak (tambah) atau ID yang tidak ada langsung
+  ditolak (ubah).
+- Kapasitas array dicek sebelum input dimulai.
+- Hari harus Senin sampai Minggu (huruf besar/kecil otomatis dirapikan).
+- Hari harus cocok dengan tanggal. Contoh: `Senin` dengan `18-10-2026` ditolak
+  karena tanggal tersebut hari Minggu; hari dan tanggal diminta ulang.
+- Tanggal dan nomor HP dicek per kolom.
+- Jam selesai harus setelah jam mulai (dalam hari yang sama).
+- Bentrok jadwal (rentang waktu tumpang tindih pada tanggal yang sama) langsung
+  diberi tahu beserta ID, mata kuliah, dan jam jadwal yang bentrok; jam mulai
+  dan selesai diminta ulang.
+- Karakter `|` ditolak pada kolom teks karena dipakai sebagai pemisah file.

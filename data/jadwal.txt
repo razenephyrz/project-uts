@@ -1,17 +1,17 @@
-1|Algoritma dan Pemrograman|7|30|Senin|19-10-2026|Harmon Prayogi|Reinzal|081234567891|Lab Komputasi 1
-2|Matematika Diskrit|9|0|Senin|19-10-2026|Rina Kusuma|Bima Aditya|081234567891|Ruang E2-201
-3|Pengantar Kecerdasan Artifisial|13|0|Senin|19-10-2026|Dewi Lestari|Citra Ayu|081234567892|Ruang E2-202
-5|Sistem Operasi|8|0|Selasa|20-10-2026|Fajar Nugroho|Eka Sari|081234567894|Ruang E2-203
-6|Basis Data|10|30|Selasa|20-10-2026|Nadia Wulandari|Fikri Ramadhan|081234567895|Ruang E2-204
-4|Struktur Data|15|30|Selasa|20-10-2026|Bagus Santoso|Dimas Pratama|081234567893|Lab Komputasi 2
-8|Pemrograman Berorientasi Objek|7|0|Rabu|21-10-2026|Hendra Wijaya|Hana Safitri|081234567897|Lab Komputasi 1
-9|Jaringan Komputer|9|30|Rabu|21-10-2026|Indra Permana|Ivan Kurniawan|081234567898|Lab Jaringan
-7|Statistika|13|30|Rabu|21-10-2026|Yuni Kartika|Gita Maharani|081234567896|Ruang E2-205
-12|Kalkulus|8|30|Kamis|22-10-2026|Lukman Hakim|Laila Zahra|081234567901|Ruang E2-208
-10|Etika Profesi|13|0|Kamis|22-10-2026|Joko Susilo|Jihan Aulia|081234567899|Ruang E2-206
-11|Bahasa Inggris|15|0|Kamis|22-10-2026|Karin Amelia|Kiki Ananda|081234567900|Ruang E2-207
-13|Pembelajaran Mesin|10|0|Jumat|23-10-2026|Maya Sari|Malik Fajar|081234567902|Lab AI
-14|Visi Komputer|13|30|Jumat|23-10-2026|Niken Pratiwi|Naufal Akbar|081234567903|Lab AI
-15|Robotika|15|30|Jumat|23-10-2026|Oscar Wijaya|Ovi Maharani|081234567904|Lab Robotika
-16|Kewirausahaan|8|0|Sabtu|24-10-2026|Putri Anggraini|Qori Hidayat|081234567905|Ruang E2-209
-17|Arsitektur Komputer|10|0|Sabtu|24-10-2026|Rudi Hartono|Rara Lestari|081234567906|Lab Komputer
+1|Bahasa jawa|7|30|9|0|Senin|19-10-2026|Bu Prapti|Bisma|022211333355|Kelas Biologi
+2|Matematika Diskrit|9|0|10|30|Senin|19-10-2026|Rina Kusuma|Bima Aditya|081234567891|Ruang E2-201
+3|Pengantar Kecerdasan Artifisial|13|0|14|30|Senin|19-10-2026|Dewi Lestari|Citra Ayu|081234567892|Ruang E2-202
+5|Sistem Operasi|8|0|9|30|Selasa|20-10-2026|Fajar Nugroho|Eka Sari|081234567894|Ruang E2-203
+6|Basis Data|10|30|12|0|Selasa|20-10-2026|Nadia Wulandari|Fikri Ramadhan|081234567895|Ruang E2-204
+4|Struktur Data|15|30|17|0|Selasa|20-10-2026|Bagus Santoso|Dimas Pratama|081234567893|Lab Komputasi 2
+8|Pemrograman Berorientasi Objek|7|0|8|30|Rabu|21-10-2026|Hendra Wijaya|Hana Safitri|081234567897|Lab Komputasi 1
+9|Jaringan Komputer|9|30|11|0|Rabu|21-10-2026|Indra Permana|Ivan Kurniawan|081234567898|Lab Jaringan
+7|Statistika|13|30|15|0|Rabu|21-10-2026|Yuni Kartika|Gita Maharani|081234567896|Ruang E2-205
+12|Kalkulus|8|30|10|0|Kamis|22-10-2026|Lukman Hakim|Laila Zahra|081234567901|Ruang E2-208
+10|Etika Profesi|13|0|14|30|Kamis|22-10-2026|Joko Susilo|Jihan Aulia|081234567899|Ruang E2-206
+11|Bahasa Inggris|15|0|16|30|Kamis|22-10-2026|Karin Amelia|Kiki Ananda|081234567900|Ruang E2-207
+13|Pembelajaran Mesin|10|0|11|30|Jumat|23-10-2026|Maya Sari|Malik Fajar|081234567902|Lab AI
+14|Visi Komputer|13|30|15|0|Jumat|23-10-2026|Niken Pratiwi|Naufal Akbar|081234567903|Lab AI
+15|Robotika|15|30|17|0|Jumat|23-10-2026|Oscar Wijaya|Ovi Maharani|081234567904|Lab Robotika
+16|Kewirausahaan|8|0|9|30|Sabtu|24-10-2026|Putri Anggraini|Qori Hidayat|081234567905|Ruang E2-209
+17|Arsitektur Komputer|10|0|11|30|Sabtu|24-10-2026|Rudi Hartono|Rara Lestari|081234567906|Lab Komputer

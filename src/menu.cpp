@@ -95,18 +95,86 @@ std::string readPhone(const std::string& prompt) {
     }
 }
 
-Jadwal readJadwalInput(int id) {
+std::string readField(const std::string& prompt) {
+    while (true) {
+        const std::string value = readText(prompt);
+        if (value.find('|') == std::string::npos) {
+            return value;
+        }
+        std::cout << "Input tidak boleh mengandung karakter '|' (dipakai sebagai pemisah file).\n";
+    }
+}
+
+std::string readDay(const std::string& prompt) {
+    while (true) {
+        std::string day = readText(prompt);
+        std::string reason;
+        if (normalizeDay(day, reason)) {
+            return day;
+        }
+        std::cout << "Hari tidak valid: " << reason << ".\n";
+    }
+}
+
+int readNewId(const Jadwal data[], std::size_t count) {
+    while (true) {
+        const int id = readInteger("ID jadwal        : ", 1, 999999);
+        if (findJadwalById(data, count, id) < 0) {
+            return id;
+        }
+        std::cout << "ID " << id << " sudah digunakan; masukkan ID lain.\n";
+    }
+}
+
+void readDayAndDate(std::string& hari, std::string& tanggal) {
+    while (true) {
+        hari = readDay("Hari              : ");
+        tanggal = readDate("Tanggal (DD-MM-YYYY): ");
+        std::string reason;
+        if (isDayMatchingDate(hari, tanggal, reason)) {
+            return;
+        }
+        std::cout << "Hari dan tanggal tidak cocok: " << reason
+                  << ". Masukkan hari dan tanggal lagi.\n";
+    }
+}
+
+void readTimeRange(const Jadwal data[], std::size_t count, const std::string& tanggal,
+                   int ignoredIndex, Waktu& mulai, Waktu& selesai) {
+    while (true) {
+        mulai.jam = static_cast<std::uint8_t>(readInteger("Jam mulai (0-23)     : ", 0, 23));
+        mulai.menit = static_cast<std::uint8_t>(readInteger("Menit mulai (0-59)   : ", 0, 59));
+
+        while (true) {
+            selesai.jam = static_cast<std::uint8_t>(readInteger("Jam selesai (0-23)   : ", 0, 23));
+            selesai.menit = static_cast<std::uint8_t>(readInteger("Menit selesai (0-59) : ", 0, 59));
+            if (toMinutes(selesai) > toMinutes(mulai)) {
+                break;
+            }
+            std::cout << "Waktu selesai harus setelah waktu mulai (" << formatTime(mulai) << ").\n";
+        }
+
+        const int conflict = findScheduleConflict(data, count, tanggal, mulai, selesai, ignoredIndex);
+        if (conflict < 0) {
+            return;
+        }
+        std::cout << "Jadwal bentrok dengan ID " << data[conflict].id << " ("
+                  << data[conflict].namaMataKuliah << ", " << formatTime(data[conflict].mulai) << "-"
+                  << formatTime(data[conflict].selesai) << ") pada " << tanggal
+                  << ". Masukkan waktu lain.\n";
+    }
+}
+
+Jadwal readJadwalInput(const Jadwal data[], std::size_t count, int id, int ignoredIndex = -1) {
     Jadwal jadwal{};
     jadwal.id = id;
-    jadwal.namaMataKuliah = readText("Nama mata kuliah : ");
-    jadwal.waktu.jam = static_cast<std::uint8_t>(readInteger("Jam (0-23)       : ", 0, 23));
-    jadwal.waktu.menit = static_cast<std::uint8_t>(readInteger("Menit (0-59)     : ", 0, 59));
-    jadwal.hari = readText("Hari              : ");
-    jadwal.tanggal = readDate("Tanggal (DD-MM-YYYY): ");
-    jadwal.namaDosen = readText("Dosen pengampu    : ");
-    jadwal.penanggungJawab = readText("Penanggung jawab  : ");
+    jadwal.namaMataKuliah = readField("Nama mata kuliah : ");
+    readDayAndDate(jadwal.hari, jadwal.tanggal);
+    readTimeRange(data, count, jadwal.tanggal, ignoredIndex, jadwal.mulai, jadwal.selesai);
+    jadwal.namaDosen = readField("Dosen pengampu    : ");
+    jadwal.penanggungJawab = readField("Penanggung jawab  : ");
     jadwal.nomorHp = readPhone("Nomor HP           : ");
-    jadwal.tempat = readText("Tempat kelas       : ");
+    jadwal.tempat = readField("Tempat kelas       : ");
     return jadwal;
 }
 
@@ -137,8 +205,12 @@ void runMenu(Jadwal data[], std::size_t& count) {
             const int choice = readInteger("Pilih menu: ", 0, 8);
             switch (choice) {
             case 1: {
-                const int id = readInteger("ID jadwal        : ", 1, 999999);
-                const Jadwal jadwal = readJadwalInput(id);
+                if (count >= MAX_JADWAL) {
+                    printResult(false, "kapasitas array sudah penuh");
+                    break;
+                }
+                const int id = readNewId(data, count);
+                const Jadwal jadwal = readJadwalInput(data, count, id);
                 std::string reason;
                 const bool success = addJadwal(data, count, jadwal, reason);
                 printResult(success, success ? "jadwal ditambahkan" : reason);
@@ -158,7 +230,12 @@ void runMenu(Jadwal data[], std::size_t& count) {
                 break;
             case 5: {
                 const int id = readInteger("ID jadwal yang diubah: ", 1, 999999);
-                const Jadwal replacement = readJadwalInput(id);
+                const int index = findJadwalById(data, count, id);
+                if (index < 0) {
+                    printResult(false, "ID jadwal tidak ditemukan");
+                    break;
+                }
+                const Jadwal replacement = readJadwalInput(data, count, id, index);
                 std::string reason;
                 const bool success = updateJadwal(data, count, id, replacement, reason);
                 printResult(success, success ? "jadwal diperbarui" : reason);
