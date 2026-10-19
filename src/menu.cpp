@@ -2,9 +2,11 @@
 
 #include "data_manager.h"
 
-#include <charconv>
+#include <cerrno>
 #include <cctype>
+#include <cstdlib>
 #include <iostream>
+#include <limits>
 #include <string>
 
 namespace {
@@ -55,16 +57,27 @@ int readInteger(const std::string& prompt, int minimum, int maximum) {
             continue;
         }
 
-        int value = 0;
-        const auto result = std::from_chars(begin, end, value);
-        if (result.ec == std::errc::result_out_of_range) {
-            std::cout << "Angka terlalu besar atau terlalu kecil untuk diproses.\n";
-            continue;
-        }
-        if (result.ec != std::errc{} || result.ptr != end) {
+        const std::string trimmed(begin, end);
+        if (trimmed[0] == '+') {
             std::cout << "Format input salah; masukkan bilangan bulat tanpa karakter tambahan.\n";
             continue;
         }
+
+        errno = 0;
+        char* parsedEnd = nullptr;
+        const long parsedValue = std::strtol(trimmed.c_str(), &parsedEnd, 10);
+        if (errno == ERANGE ||
+            parsedValue < std::numeric_limits<int>::min() ||
+            parsedValue > std::numeric_limits<int>::max()) {
+            std::cout << "Angka terlalu besar atau terlalu kecil untuk diproses.\n";
+            continue;
+        }
+        if (parsedEnd == trimmed.c_str() ||
+            parsedEnd != trimmed.c_str() + trimmed.size()) {
+            std::cout << "Format input salah; masukkan bilangan bulat tanpa karakter tambahan.\n";
+            continue;
+        }
+        const int value = static_cast<int>(parsedValue);
         if (value < minimum || value > maximum) {
             std::cout << "Nilai harus antara " << minimum << " dan " << maximum << ".\n";
             continue;
